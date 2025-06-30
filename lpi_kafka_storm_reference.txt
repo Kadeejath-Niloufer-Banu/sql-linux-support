@@ -1,0 +1,109 @@
+================================================================================
+LPI, Kafka & Storm Admin Reference
+================================================================================
+
+SECTION 1: LPI (LAST_SRC_EXTRACT) CHECK AND UPDATE
+--------------------------------------------------------------------------------
+Query example for checking last extract info:
+
+    SELECT LAST_SRC_EXTRACT
+    FROM <process_extract_table>
+    WHERE PROCESS_SK IN (<process_sk>)
+    GROUP BY LAST_SRC_EXTRACT;
+
+Example format of LAST_SRC_EXTRACT result:
+
+    0,327713544#2,321758952#7,321920027#...
+
+--------------------------------------------------------------------------------
+SECTION 2: KAFKA OFFSET CHECK
+--------------------------------------------------------------------------------
+Minimum offset check:
+
+    cd <kafka_bin_path>
+    ./kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list <broker_host>:9092 --time -2 --topic <topic_name>
+
+Maximum offset check:
+
+    cd <kafka_bin_path>
+    ./kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list <broker_host>:9092 --time -1 --topic <topic_name>
+
+--------------------------------------------------------------------------------
+SECTION 3: LPI UPDATE PROCEDURE
+--------------------------------------------------------------------------------
+Update statement example:
+
+    EXEC <metadata_owner>.GBI_SUPPORT_API.UPDATE_LPI (<process_sk>, 'GENERIC', '<last_src_extract_string>');
+
+Example:
+
+    EXEC <metadata_owner>.GBI_SUPPORT_API.UPDATE_LPI (100196916,'GENERIC','0,2578216#1,2513332#...');
+
+--------------------------------------------------------------------------------
+SECTION 4: STORM UI ACCESS
+--------------------------------------------------------------------------------
+Storm UI example URLs:
+
+    http://<host1>:8080/index.html    DSP-1
+    http://<host2>:8080/index.html    DSP-2
+    ...
+
+--------------------------------------------------------------------------------
+SECTION 5: PROCESS & ENTITY CHECKS
+--------------------------------------------------------------------------------
+Query to get source/target table mapping:
+
+    SELECT DISTINCT process_sk, source_TABLE_NAME, source_db_name, TARGET_TABLE_NAME, target_db_name
+    FROM <metadata_table>
+    WHERE PROCESS_SK = <process_sk>;
+
+Query to get entity attributes:
+
+    SELECT DISTINCT process_sk, PROCESS_NAME, SOURCE_DB, SOURCE_ENTITY, SOURCE_DB_SERVER,
+                    SOURCE_DB_PORT, SOURCE_URL, TARGET_DB, TARGET_ENTITY
+    FROM <metadata_view>
+    WHERE process_sk = <process_sk>;
+
+--------------------------------------------------------------------------------
+SECTION 6: SDP & DSP TOPIC EXAMPLES
+--------------------------------------------------------------------------------
+Kafka topic offset example command:
+
+    ./kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list <broker_host>:9092 --time -2 --topic <topic_name>
+
+--------------------------------------------------------------------------------
+SECTION 7: ADDITIONAL ENTITY QUERIES
+--------------------------------------------------------------------------------
+Get topic name (example):
+
+    SELECT DISTINCT SOURCE_DB, SOURCE_ENTITY, TARGET_DB, TARGET_ENTITY,
+                    SOURCE_DB_SERVER, SOURCE_DB_PORT, SOURCE_URL
+    FROM <metadata_view>
+    WHERE process_sk = <process_sk>;
+
+Column mapping example:
+
+    SELECT SOURCE_COL, COL_MAPPING
+    FROM <metadata_view>
+    WHERE process_sk = <process_sk>;
+
+--------------------------------------------------------------------------------
+SECTION 8: PROCESS HISTORY CHECK
+--------------------------------------------------------------------------------
+Query to check max run timestamp:
+
+    SELECT MAX(end_ts), env_cd, process_status
+    FROM <hist_process_run_table>
+    WHERE process_sk IN (SELECT process_sk FROM <process_table> WHERE process_name = '<process_name>')
+    GROUP BY env_cd, process_status;
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+- Replace placeholders such as <process_sk>, <topic_name>, <broker_host>, <metadata_owner>, <metadata_table>, <metadata_view>, <process_table> with actual values.
+- Avoid sharing real hostnames or credentials in scripts or documentation.
+- Always validate queries and commands in a controlled environment.
+
+================================================================================
+END OF DOCUMENT
+================================================================================
