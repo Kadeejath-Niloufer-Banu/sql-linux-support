@@ -1,0 +1,44 @@
+# SFTP File Transfer Instructions
+
+# To get a file from host to desktop:
+
+# 1. SSH to host and set permission 777 on your directory:
+chmod 777 /home/aps/<your_cid>
+
+# 2. Login to host as etlp user
+sudo su - etlp
+
+# 3. Copy the file to /home/aps/<your_cid> folder
+
+# 4. Change directory to your folder
+cd /home/aps/<your_cid>
+
+# 5. Set permission 777 on the file
+chmod 777 <file>
+
+# 6. From desktop, SFTP to host
+sftp <cid>@<host>
+
+# 7. Download file using get command
+get <file>
+
+
+
+# To send a file from desktop to host:
+
+# 1. SSH to host and set permission 777 on your directory
+chmod 777 /home/aps/<your_cid>
+
+# 2. From desktop, connect using SFTP
+sftp <cid>@<host>
+
+# 3. Upload file using put command
+put <file>
+
+# 4. SSH to host and set permission 777 on uploaded file
+chmod 777 <file>
+
+# 5. Login to host as etlp user
+sudo su - etlp
+
+# 6. Copy file from /home/aps/<your_cid> to required location
