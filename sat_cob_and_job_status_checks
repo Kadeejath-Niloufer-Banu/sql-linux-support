@@ -1,0 +1,84 @@
+#!/bin/bash
+###############################################################################
+# File: sat_cob_and_job_status_checks.sh
+# Description: Generic template to run SAT COB batch and job status checks.
+# Customize the queries with your actual environment details.
+###############################################################################
+
+# Set Oracle environment variables (update as per your environment)
+export ORACLE_HOME=/your/oracle/home
+export PATH=$ORACLE_HOME/bin:$PATH
+export ORACLE_SID=your_oracle_sid
+
+# Function to run SQL queries via sqlplus
+run_sql() {
+  sqlplus -s /nolog <<EOF
+CONNECT your_username/your_password@your_database
+SET PAGESIZE 100
+SET LINESIZE 200
+SET FEEDBACK OFF
+SET TRIMSPOOL ON
+$1
+EXIT;
+EOF
+}
+
+echo "==== 1. Check pending batches for replication ===="
+run_sql "
+-- Replace with your actual query to check pending batches
+SELECT COUNT(1)
+  FROM your_batch_queue_table
+ WHERE insert_ts <= SYSDATE - (1/24)
+;
+"
+
+echo "==== 2. Check job daemon status ===="
+run_sql "
+-- Replace with your actual query to check ETL daemon/job status
+SELECT process_name, status, end_date
+  FROM your_job_status_table
+ WHERE process_name LIKE '%your_process_name%'
+;
+"
+
+echo "==== 3. Check batch queue for specific processes ===="
+run_sql "
+-- Replace with your actual query to check specific batch processes
+SELECT source_batch_id, process_name, insert_ts, batch_status
+  FROM your_batch_queue_table
+ WHERE process_name IN ('process1', 'process2', 'process3')
+;
+"
+
+echo "==== 4. Check SAT process status summary ===="
+run_sql "
+-- Replace with your actual SAT process status table query
+SELECT region_code, process_name, status, last_update
+  FROM your_sat_process_status_table
+ ORDER BY region_code
+;
+"
+
+echo "==== 5. Check recent job statuses ===="
+run_sql "
+-- Replace with your query to check recent job statuses with descriptions
+SELECT process_name, status, status_description, end_date
+  FROM your_job_status_table a
+  JOIN your_status_description_table b ON a.status = b.status_code
+ WHERE process_name IN ('processA', 'processB')
+;
+"
+
+echo "==== 6. Check latest As_Of_Date per region for data tables ===="
+run_sql "
+-- Replace with your query to check latest data dates per region
+SELECT MAX(as_of_date), region_code
+  FROM your_data_table
+ WHERE region_code IN ('Region1', 'Region2', 'Region3')
+   AND as_of_date > SYSDATE - 1
+ GROUP BY region_code
+ ORDER BY region_code
+;
+"
+
+echo "==== End of SAT COB and job status checks ===="
