@@ -1,0 +1,142 @@
+================================================================================
+File and Data Handling Reference
+================================================================================
+
+SECTION 1: FILE SEARCH AND CONTENT CHECK
+--------------------------------------------------------------------------------
+To find a file containing a specific string in a directory:
+
+    grep "<search_string>" * -IR
+
+Check contents of files, validate rows, or examine delimiters using:
+
+    awk -F '<delimiter>' 'NR==<row_number> {print}' <file>
+    awk -F '<delimiter>' '{if (length($<column_number>) > <limit>) {print NR,NF}}' <file>
+    cat -v <file> | awk -F '[|]' '{if(length($<column>) > <limit>){print NF, NR, $<any_column>}}'
+
+Splitting large files:
+
+    split -n l/<number_of_parts> -a1 -d <filename> <output_prefix>
+
+Remove specific lines from a file:
+
+    sed -e '<line_number> d;<line_number> d;...' <input_file> > <output_file>
+
+--------------------------------------------------------------------------------
+
+SECTION 2: SQL CHECKS FOR TABLES AND COLUMNS
+--------------------------------------------------------------------------------
+Check for tables:
+
+    lock row for access select databasename, tablename 
+    from DBC.TABLES 
+    where databasename='<db_name>' 
+      and tablename like '%<table_pattern>%';
+
+Show or drop tables:
+
+    show table <table_name>;
+    drop table <table_name>;
+
+Example of recreating a staging table:
+
+    show table <table_name>;
+    show stats on <table_name>;
+    drop table <table_name>;
+    create table ...;
+    help stats <table_name>;
+
+--------------------------------------------------------------------------------
+
+SECTION 3: CHARACTER ENCODING & UNTRANSLATABLE CHARACTERS
+--------------------------------------------------------------------------------
+Set session charset:
+
+    .set session charset "UTF8";
+
+Check untranslatable characters:
+
+    sel count(1) from <table> 
+    where translate_chk(<column> using unicode_to_latin) <> 0;
+
+Check and group by problematic characters:
+
+    sel translate_chk(<column> using unicode_to_latin), <column>
+    from <table>
+    where translate_chk(<column> using unicode_to_latin) <> 0
+    group by 1, 2;
+
+--------------------------------------------------------------------------------
+
+SECTION 4: COLUMN LENGTH OVERFLOW HANDLING
+--------------------------------------------------------------------------------
+Identify rows where column length exceeds a limit:
+
+    awk -F '<delimiter>' '{if(length($<column_number>) > <limit>) {print NR, NF}}' <file>
+
+Trim overflowing columns:
+
+    awk -F '<delimiter>' '{if ($<column_number> > <limit>) { $<field_to_trim>=substr($<field_to_trim>, 1, <new_length>); print;} else {print;}}' OFS='<delimiter>' <file> > <output_file>
+
+--------------------------------------------------------------------------------
+
+SECTION 5: HANDLING WIDE TABLES (MANY COLUMNS)
+--------------------------------------------------------------------------------
+Set display width for SQL output:
+
+    .SET WIDTH 65531
+    .SET FORMAT OFF
+    .SET TITLEDASHES OFF
+    .SET SEPARATOR '~'
+    .SET RETLIMIT * 300;
+
+--------------------------------------------------------------------------------
+
+SECTION 6: DISK SPACE CHECKS AND MANAGEMENT
+--------------------------------------------------------------------------------
+Check disk/database space usage:
+
+    SELECT DatabaseName, 
+           CAST(SUM(CurrentPerm)/(1024*1024*1024) AS DECIMAL(18,2)) AS UsedSpace,
+           CAST(SUM(MaxPerm)/(1024*1024*1024) AS DECIMAL(18,2)) AS AllocatedSpace,
+           AllocatedSpace - UsedSpace AS AvailableSpace,
+           CAST((UsedSpace)*100/AllocatedSpace AS DECIMAL(18,2)) AS Pct_Used
+    FROM DBC.DiskSpace
+    WHERE DatabaseName = '<db_name>'
+    GROUP BY 1
+    ORDER BY 1;
+
+Check skew and utilization:
+
+    lock row for access sel top 10 DatabaseName,
+           CAST(sum(MaxPerm)/(1024*1024*1024) AS DECIMAL(18,2)) AS Max_Space_GB,
+           CAST(sum(CurrentPerm)/(1024*1024*1024) AS DECIMAL(18,2)) AS Used_Space_GB,
+           (Max_Space_GB - Used_Space_GB) AS Free_Space_GB
+    from DBC.DiskSpace
+    group by DatabaseName
+    order by Free_Space_GB DESC;
+
+--------------------------------------------------------------------------------
+
+SECTION 7: FRONTEND AND OTHER TOOL REFERENCES
+--------------------------------------------------------------------------------
+Autosys UI:
+    https://<autosys_ui_url>
+
+BODS (Data Services):
+    http://<bods_url>
+    System Name: <system_name>
+    User: <user_name>
+    Pwd: <password>
+
+--------------------------------------------------------------------------------
+
+NOTES:
+--------------------------------------------------------------------------------
+- Replace placeholders (e.g., <db_name>, <table_name>, <delimiter>) with actual values as appropriate.
+- Do not store or share real passwords, environment names, or internal host details in documentation.
+- Always validate against organizational policies before publishing or sharing externally.
+
+================================================================================
+END OF DOCUMENT
+================================================================================
