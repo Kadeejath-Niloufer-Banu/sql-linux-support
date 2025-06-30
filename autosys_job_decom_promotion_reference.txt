@@ -1,0 +1,93 @@
+================================================================================
+Autosys Job Decommissioning & Promotion Reference
+================================================================================
+
+SECTION 1: DECOMMISSIONING COMMAND
+--------------------------------------------------------------------------------
+Command syntax:
+
+    decommission -e [environment] -f [file_path] -u [user_name] -p [encrypted_password]
+
+Example:
+
+    decommission -e GBT-GBN -n jobname -u <user> -p <enc_pass> -t <cr_number>
+
+--------------------------------------------------------------------------------
+SECTION 2: ENVIRONMENT URLs
+--------------------------------------------------------------------------------
+GBM
+
+  Dev:
+    [Private internal DEV URL — GBM]
+  Test:
+    [Private internal TEST URL — GBM]
+
+GBN
+
+  Dev:
+    [Private internal DEV URL — GBN]
+  Test:
+    [Private internal TEST URL — GBN]
+
+--------------------------------------------------------------------------------
+SECTION 3: GENERAL PROMOTION STEPS
+--------------------------------------------------------------------------------
+1️. Take a backup of the JIL in PROD and keep job on hold.  
+
+2️. Check job in DEV URLs; if missing, import it using a JIL text file.  
+
+3️. Once corrected in DEV, promote to UAT:
+
+- Login to appropriate host
+- Export bin path:
+
+    export PATH=$PATH:/file/path/to/
+
+- Check lifecycle (CORE or Semantic):
+
+    display lifecycle CORE_box_promote
+    display lifecycle Semantic_box_promote
+
+- Get encrypted password:
+
+    display pwx <user_name>
+
+- Promote command example:
+
+    promote -e GBD2GBT -c CORE_box_promote -f /tmp/filename -u <user> -p <enc_pass>
+    OR
+    promote -e GBD2GBT -c CORE_box_promote -n <job_name> -u <user> -p <enc_pass>
+
+4️. Verify in UAT (no changes directly in TEST).
+
+5️. Promote to PROD:
+
+- Ensure CR is in execution state and implementer is listed.
+- Example:
+
+    promote -e GBT2GBN -c CORE_box_promote -f /tmp/filename -u <user> -p <enc_pass> -t <cr_number>
+
+- Alternative for GBN or GBM:
+
+    promote -e GBD2GBT -c CORE_box_promote -f /tmp/filename -u <user> -p <enc_pass> -t <cr_number>
+
+6️⃣ Check in PROD and confirm in mailbox.
+
+7️⃣ Release and start the job.
+
+--------------------------------------------------------------------------------
+SECTION 4: AUTOSYS UI LINKS
+--------------------------------------------------------------------------------
+DEV:
+
+    [Private internal DEV URL]
+
+TEST:
+
+    [Private internal TEST URL]
+
+PROD:
+
+    [Private internal PROD URL #1]
+    [Private internal PROD URL #2]
+
