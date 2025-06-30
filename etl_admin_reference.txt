@@ -1,0 +1,197 @@
+# Example of a shell script path (sanitized)
+#/path/to/scripts/.polaris.ksh
+
+# Lock row for access - example SQL query (sanitize schema and table names)
+LOCK ROW FOR ACCESS;
+SELECT DISTINCT querytext FROM system_log_table WHERE sessionid IN (
+  SELECT sessionid FROM system_log_table WHERE querytext LIKE '%<PROCESS_KEYWORD>%' AND username = '<USER>'
+) AND querytext LIKE 'call %';
+
+# Download script from internal URL - sanitized
+/usr/bin/curl -O https://internal-server.example.com:port/path/to/script.sh
+
+# Halt ETL daemon script - sanitized server name
+/path/to/etl/scripts/etl_daemon_halt.ksh server.domain.com ETLP
+
+# Hold a job with comment - sanitized placeholder
+job_hold_command <JOB_NAME> -c "comments to put on hold"
+
+# SQL query to check job errors (sanitized table and job names)
+SQL> 
+SELECT 'INC0' || ticket_id || ' ' || env_code || ' ' || create_ts || ' ' || process_name || ' ' || job_name
+FROM job_error_table
+WHERE create_ts > SYSDATE - 1
+AND job_name IN ('JOB_A', 'JOB_B')
+ORDER BY create_ts;
+
+# Set date format session parameter
+ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-RR HH24:MI:SS';
+
+# Example TNS ping command with sanitized TNS name
+tnsping uftp_service
+
+# Sample error from ETL system (sanitized)
+Caused by: com.example.etl.EtlRuntimeException: Failed to establish connection after retries
+sourceType: oracle.jdbc.driver.OracleDriver
+url: jdbc:oracle:thin:@dbserver.example.com:1720:service
+user: <DB_USER>
+
+# Query to view source code for a stored procedure (sanitized)
+SQL> SELECT TEXT FROM all_source WHERE NAME = '<PROC_NAME>' ORDER BY LINE;
+
+# Example control table query (sanitized)
+SELECT action_control_key, CAST(control_key AS VARCHAR(50)), CAST(control_value AS VARCHAR(50))
+FROM etl_control_table
+WHERE action_control_key = 123456;
+
+# Example server hostname (sanitized)
+server.example.com
+
+# Shell commands for permission and script run (sanitized)
+chmod 746 /path/to/scripts
+cd /path/to/scripts
+python script.py
+
+# Example ps command filtered for keyword (sanitized)
+ps -ef | grep '<process_keyword>'
+
+# DNJ commands summary (job control commands) - placeholders used
+dnjr JOB_NAME [ENV_CODE] [JOB_TYPE] - shows running status (supports wildcards %)
+dnfsj JOB_NAME ENV_CODE JOB_TYPE - force start job
+dnjon JOB_NAME ENV_CODE JOB_TYPE - put job on hold
+dnjoff JOB_NAME ENV_CODE JOB_TYPE - release job from hold
+dnjond JOB_NAME ENV_CODE JOB_TYPE - view on hold details and levels
+
+# Force start a job example (sanitized)
+ /path/to/scripts/etl_daemon_forcestart_process.ksh JOB_NAME ENV_CODE
+
+# Query to check max batches for a process (sanitized)
+SELECT process_sk, env_cd, max_batches, min_batches FROM process_env_table WHERE process_sk=123456 AND env_cd='ENV';
+
+# Query to get pending batches joined with job error (sanitized)
+SELECT DISTINCT bq.process_sk, CAST(je.job_name AS VARCHAR(55)) AS job_name, CAST(bq.env_cd AS VARCHAR(15)) AS environment,
+       COUNT(1) AS pending_batches,
+       CAST(MIN(bq.insert_ts) AS VARCHAR(15)) AS pending_from,
+       CAST(MAX(bq.insert_ts) AS VARCHAR(15)) AS pending_till
+FROM process_batch_queue bq
+JOIN job_error_table je ON bq.process_sk = je.job_sk
+WHERE ticket_id = 123456789
+GROUP BY bq.process_sk, je.job_name, bq.env_cd
+ORDER BY bq.process_sk;
+
+# Change directories to checkpoint folders (sanitized)
+cd /path/to/targetfiles/environment1/ETLFRAMEWORK/RUNTIME_CTL/LOADCTL/tptcheckpoint
+cd /path/to/targetfiles/environment2/ETLFRAMEWORK/RUNTIME_CTL/LOADCTL/tptcheckpoint
+cd /path/to/targetfiles/environment3/ETLFRAMEWORK/RUNTIME_CTL/LOADCTL/tptcheckpoint
+
+# Query session id errors (sanitized)
+SELECT errorcode, querytext FROM system_log_table WHERE sessionid = '1234567890' ORDER BY collecttimestamp ASC;
+
+# Command to check last 5 runs of a job (sanitized)
+for i in {1..6}
+do
+  jr JOB_NAME -r -$i | grep "201"
+done
+
+# Internal URL for web system (sanitized)
+http://internal-url.example.com:8080/DataServices/launch/logon.do
+
+# Server and user info (sanitized)
+System name: server.domain.com:6400
+User: <USER>
+Pwd: <REDACTED>
+
+# Informatica logs path (sanitized)
+Informatica/PowerCenter/server/infa_shared/SessLogs
+
+# Sample event send command (sanitized)
+sendevent -E MACH_OFFLINE -n SYSTEM_NAME
+
+# Query active sessions by machine name (sanitized)
+SQL> SELECT sql_id, serial#, sid, status, CAST(logon_time AS TIMESTAMP(0))
+FROM v$session WHERE machine LIKE '%server_pattern%';
+
+# Example PL/SQL block to reset archive or reprocess batch (sanitized)
+DECLARE
+  out_batch_status VARCHAR2(20000);
+BEGIN
+  ETL_OWNER.ETL_SUPPORT_API.RUN_RESET_ARCHIVE(10000000, '123456789', 'ENVIRONMENT', out_batch_status);
+  DBMS_OUTPUT.PUT_LINE(out_batch_status);
+END;
+/
+
+-- Similar block for reprocessing batch and skipping batch follows same pattern --
+
+# SFTP connection examples (sanitized)
+sftp etl_sftp_user@sftp-server.example.com
+sftp etl_sftp_user@another-server.example.com
+
+# Logistic SQLPlus login (sanitized)
+sqlplus <user>@<db>
+password: <REDACTED>
+
+# Update batch status example (sanitized)
+UPDATE etl_owner.process_batch_queue
+SET batch_status = 7
+WHERE process_sk = 100000000
+AND source_batch_sk IN ('123456789', '987654321', '...')
+AND env_cd = 'ENVIRONMENT';
+
+# Update batch COB limit (sanitized)
+DECLARE
+  out_result VARCHAR2(100);
+BEGIN
+  ETL_OWNER.METADATA_MANUAL_UPDATE('UPDATE', 100000000, 'PROCESS_ENV', 'BATCH_COB_LIMIT', '''1500000''', ' AND env_cd=''GENERIC''', 12345678, out_result);
+  DBMS_OUTPUT.PUT_LINE(out_result);
+END;
+/
+
+# Update max batches (sanitized)
+SELECT env_cd, max_batches FROM etl_owner.process_env WHERE process_sk = 100000000;
+
+# Update host_name example (sanitized)
+UPDATE etl_owner.etl_daemon_process_env
+SET host_name = 'server.domain.com'
+WHERE process_sk IN (SELECT process_sk FROM etl_owner.process WHERE process_name = 'PROCESS_NAME')
+AND env_cd = 'ENV';
+
+# Ansible credentials (redacted)
+Username: <REDACTED>
+Password: <REDACTED>
+
+# Ansible URL (sanitized)
+https://internal-ansible.example.com/#/login?login=true
+
+# Log file path example (sanitized)
+server.domain.com:/path/to/logs/infa_decommissioning
+
+# Export environment variable example
+export EMAIL_ID=user@example.com
+
+# Source environment variables if present
+if [ -f /path/to/.daemon_support_cli_env ]; then
+  . /path/to/.daemon_support_cli_env
+fi
+
+# DNJ commands (summary as above)
+
+# PL/SQL block to reprocess batches in range (sanitized)
+DECLARE
+  out_batch_status VARCHAR(12000);
+  CURSOR process_sk_cur IS SELECT process_sk FROM etl_owner.process WHERE process_sk IN (100000000);
+BEGIN
+  FOR process_rec IN process_sk_cur LOOP
+    FOR batch_rec IN (
+      SELECT source_batch_sk FROM hist_process_batch_queue WHERE process_sk = process_rec.process_sk
+      AND source_batch_sk BETWEEN 100000000 AND 100000500
+      AND env_cd='ENV'
+    ) LOOP
+      ETL_OWNER.SUPPORT_API.REPROCESS_BATCH(process_rec.process_sk, batch_rec.source_batch_sk, 'ENV', NULL, out_batch_status);
+      DBMS_OUTPUT.PUT_LINE(out_batch_status);
+    END LOOP;
+  END LOOP;
+END;
+/
+
+
+
