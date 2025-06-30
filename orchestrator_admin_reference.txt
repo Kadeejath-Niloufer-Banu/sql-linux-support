@@ -1,0 +1,119 @@
+================================================================================
+Orchestrator Admin Reference
+================================================================================
+
+SECTION 1: CHECKING JOB STATUS USING ORCHESTRATOR SCRIPT
+--------------------------------------------------------------------------------
+Script location (example path):
+
+    /path/to/scripts/orchestrator_support.sh
+
+Display help and options:
+
+    ./orchestrator_support.sh -h
+
+Key command-line options (self-explanatory):
+
+    -aoffh, --setAppOffHold <appName>          Sets application status to off hold
+    -aoh,  --setAppOnHold <appName>           Sets application status to on hold
+    -eoffh,--setEnvOffHold <envCode>           Sets environment status to off hold
+    -eoh, --setEnvOnHold <envCode>            Sets environment status to on hold
+    -joffh,--setJobOffHold <processName> <arg> Sets job status to off hold
+    -joh, --setJobOnHold <processName> <arg>  Sets job status to on hold
+    -inp, --runningJobs                        Lists currently running jobs
+    -pj,  --parkedJobs                         Lists jobs in parking lot
+    -r,   --restartFailedJobs <processName> <envCode> Restarts failed jobs
+    -s,   --status                             Displays current running status
+    -v,   --version                            Displays framework version info
+    -verbose                                   Shows verbose status with Kafka offsets
+    -p,   --ping                               Health check
+
+Example for checking on-hold jobs:
+
+    ./orchestrator_support.sh -s | grep -i 'onhold'
+
+--------------------------------------------------------------------------------
+
+SECTION 2: CHECKING PROCESS BATCH RUN DETAILS (CURL EXAMPLE)
+--------------------------------------------------------------------------------
+Sample curl command (replace placeholders):
+
+    curl -H "Content-Type: application/json" \
+         -H "Cookie: acack=`<appleconnect_ticket_command>`" \
+         -X POST \
+         -d '{"bindVars":[{"bindVarName":"IN_PROCESS_NAME","bindVarVal":"<process_name>"}, {"bindVarName":"IN_ENV_CODE","bindVarVal": "<env_code>"}]}' \
+         <service_url> | sed -e 's/[{}]/''/g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | grep '"BATCH_SK"'
+
+--------------------------------------------------------------------------------
+
+SECTION 3: CONSUMER PARTITIONS OVERVIEW (EXAMPLE ONLY)
+--------------------------------------------------------------------------------
+Example placeholder partition distribution:
+
+    ### Consumer Group A
+    partition 0 : host1
+    partition 1 : host2
+    ...
+    partition 8 : host9
+
+    ### Consumer Group B
+    partition 0 : hostA
+    partition 1 : hostB
+    ...
+    partition 8 : hostI
+
+    ### Consumer Group C
+    partition 0 : hostX
+    ...
+    partition 8 : hostZ
+
+--------------------------------------------------------------------------------
+
+SECTION 4: ORCHESTRATOR OS PATCHING PROCEDURE
+--------------------------------------------------------------------------------
+1. Login to each orchestrator host
+2. Switch to appropriate ETL user
+3. Find orchestrator PID:
+
+       ps -ef | grep orchestrator_start.sh | grep -v grep | awk '{print $2}'
+       or
+       ps -ef | grep etl | grep orchestrator | grep OrchestratorLauncher | awk '{print $2}'
+       or
+       jps | grep OrchestratorLauncher
+
+4. Shutdown gracefully (do not use kill -9):
+
+       kill <pid>
+
+5. Verify logs for successful shutdown:
+
+       grep -i "Closed orchestrator successfully" orchestrator.log
+       grep -i "Completed shutting orchestrator" orchestrator.log
+
+6. Confirm PID no longer running:
+
+       ps -ef | grep -i orchestrator
+
+7. Start orchestrator:
+
+       orchestrator-start.sh
+
+8. Monitor startup logs:
+
+       tail -f orchestrator.log | grep -i exception
+
+9. Check status:
+
+       ps -ef | grep -i orchestrator
+
+--------------------------------------------------------------------------------
+
+NOTES
+--------------------------------------------------------------------------------
+- Replace placeholders such as <appName>, <envCode>, <processName>, <service_url> with actual values as needed.
+- Avoid exposing any real hostnames, tickets, or user credentials in documentation or scripts.
+- Always follow internal security and change control procedures.
+
+================================================================================
+END OF DOCUMENT
+================================================================================
